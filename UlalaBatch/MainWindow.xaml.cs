@@ -43,8 +43,8 @@ namespace UlalaBatch
 
         private void BtnCategorySubscribers_Click(object sender, RoutedEventArgs e)
         {
-            panelBattleBatch.Visibility = Visibility.Hidden;
-            panelSubscriber.Visibility = Visibility.Visible;
+            listBattleBatch.Visibility = Visibility.Hidden;
+            listSubscribers.Visibility = Visibility.Visible;
         }
 
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
@@ -68,8 +68,8 @@ namespace UlalaBatch
 
                 return Task.CompletedTask;
             });
-            panelBattleBatch.Visibility = Visibility.Visible;
-            panelSubscriber.Visibility = Visibility.Hidden;
+            listBattleBatch.Visibility = Visibility.Visible;
+            listSubscribers.Visibility = Visibility.Hidden;
         }
 
         private void BtnEdit_Click(object sender, RoutedEventArgs e)

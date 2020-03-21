@@ -30,10 +30,10 @@ namespace UlalaBatch.Infrastructure
             if (Interlocked.Increment(ref _isProcess) == 1)
             {
                 var index = 0;
-                
+                var increase = 1;
+                var position = Position.Attack;
                 for (; ; )
                 {
-                    var position = Position.Attack;
                     if (_includeBattleNickname.Count == this._sortCharacterInfoModels.Count)
                     {
                         break;
@@ -57,12 +57,19 @@ namespace UlalaBatch.Infrastructure
                     {
                         position = Position.Elite;
                     }
-                    else if (index >= Consts.MaxPositionIndex)
+                    else if(index <= Consts.MaxPositionIndex && position == Position.Elite)
+                    {
+                        position = Position.Attack;
+                    }
+                    else if (index > Consts.MaxPositionIndex && position == Position.Attack)
                     {
                         position = Position.Defence;
+                        index--;
+                        increase = -1;
                     }
                     batchModel.Position = position;
-                    batchModel.Index = index++;
+                    batchModel.Index = index;
+                    index += increase;
 
                     result.Add(batchModel);
                 }

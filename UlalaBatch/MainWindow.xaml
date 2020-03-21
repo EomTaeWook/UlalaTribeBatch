@@ -69,30 +69,25 @@
                 </StackPanel>
             </DockPanel>
         </Border>
-        <StackPanel Grid.Row="1" Grid.Column="1" Name="panelSubscriber">
-            <ListView Name="listSubscribers">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="닉네임" Width="150" DisplayMemberBinding="{Binding Nickname}"></GridViewColumn>
-                        <GridViewColumn Header="전투력" Width="200" DisplayMemberBinding="{Binding CombatPower}" ></GridViewColumn>
-                        <GridViewColumn Header="직업" Width="100" DisplayMemberBinding="{Binding JobType}"></GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="1" Name="panelBattleBatch" Visibility="Hidden">
-            <ListView Name="listBattleBatch">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="포지션" Width="50" DisplayMemberBinding="{Binding PositionDesc}"></GridViewColumn>
-                        <GridViewColumn Header="탱커" Width="110" DisplayMemberBinding="{Binding Path = Tanker.Nickname }"></GridViewColumn>
-                        <GridViewColumn Header="딜러1" Width="110" DisplayMemberBinding="{Binding Path = Dealer1.Nickname}"></GridViewColumn>
-                        <GridViewColumn Header="딜러2" Width="110" DisplayMemberBinding="{Binding Path =  Dealer2.Nickname}"></GridViewColumn>
-                        <GridViewColumn Header="힐러" Width="110" DisplayMemberBinding="{Binding Path = Healer.Nickname}"></GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </StackPanel>
-        
+        <ListView Grid.Row="1" Grid.Column="1" Name="listSubscribers" ScrollViewer.VerticalScrollBarVisibility="Visible" VerticalContentAlignment="Top" ScrollViewer.CanContentScroll="False">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="닉네임" Width="150" DisplayMemberBinding="{Binding Nickname}"></GridViewColumn>
+                    <GridViewColumn Header="전투력" Width="200" DisplayMemberBinding="{Binding CombatPower}" ></GridViewColumn>
+                    <GridViewColumn Header="직업" Width="100" DisplayMemberBinding="{Binding JobType}"></GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <ListView Grid.Row="1" Grid.Column="1" Name="listBattleBatch" Visibility="Hidden">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="포지션" Width="80" DisplayMemberBinding="{Binding PositionDesc}"></GridViewColumn>
+                    <GridViewColumn Header="탱커" Width="110" DisplayMemberBinding="{Binding Path = Tanker.Nickname }"></GridViewColumn>
+                    <GridViewColumn Header="딜러1" Width="110" DisplayMemberBinding="{Binding Path = Dealer1.Nickname}"></GridViewColumn>
+                    <GridViewColumn Header="딜러2" Width="110" DisplayMemberBinding="{Binding Path =  Dealer2.Nickname}"></GridViewColumn>
+                    <GridViewColumn Header="힐러" Width="110" DisplayMemberBinding="{Binding Path = Healer.Nickname}"></GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
     </Grid>
 </Controls:MetroWindow>
