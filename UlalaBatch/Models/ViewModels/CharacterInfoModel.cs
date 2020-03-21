@@ -14,7 +14,7 @@ namespace UlalaBatch.Models
         private int _combatPower;
         private JobGroupType _jobGroupType;
         private JobType _jobType;
-
+        private bool _isSelect;
         public event PropertyChangedEventHandler PropertyChanged;
         public string Nickname
         { 
@@ -52,8 +52,16 @@ namespace UlalaBatch.Models
                 OnPropertyChanged("JobType");
             }
         }
+        public bool IsSelect
+        {
+            get => this._isSelect;
+            set
+            {
+                this._isSelect = value;
+                OnPropertyChanged("IsSelect");
+            }
+        }
 
-        
 
         private void OnPropertyChanged(string propertyName)
         {

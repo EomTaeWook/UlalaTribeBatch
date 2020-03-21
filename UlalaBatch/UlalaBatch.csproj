@@ -95,21 +95,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="BatchWIndow.xaml.cs">
-      <DependentUpon>BatchWIndow.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Infrastructure\BattleBatch.cs" />
     <Compile Include="Infrastructure\Consts.cs" />
     <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="Infrastructure\TaskBuilder.cs" />
     <Compile Include="Infrastructure\TaskQueue.cs" />
     <Compile Include="Models\BatchResultModel.cs" />
-    <Compile Include="Views\BatchResultView.xaml.cs">
-      <DependentUpon>BatchResultView.xaml</DependentUpon>
-    </Compile>
-    <Page Include="BatchWIndow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -123,10 +114,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Views\BatchResultView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\ViewModels\CharacterInfoModel.cs" />

@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="오늘도우라라 부족 배치" Height="450" Width="800">
     <Controls:MetroWindow.RightWindowCommands>
         <Controls:WindowCommands>
             <Button Name="btnGithub">
@@ -37,16 +37,15 @@
             <DockPanel >
                 <Grid DockPanel.Dock="Bottom">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition>
-                        </ColumnDefinition>
-                        <ColumnDefinition>
-                        </ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Button Name="btnSave" Content="저장" Grid.Column="0" Grid.ColumnSpan="2"></Button>
+                    <Button Name="btnSave" Content="저장" Grid.Column="0" Grid.ColumnSpan="3"></Button>
                     <Button Name="btnEdit" Visibility="Collapsed" Content="수정" Grid.Column="0" ></Button>
-                    <Button Name="btnCancel" Visibility="Collapsed" Content="취소" Grid.Column="1"></Button>
+                    <Button Name="btnDelete" Visibility="Collapsed" Content="삭제" Grid.Column="1"></Button>
+                    <Button Name="btnCancel" Visibility="Collapsed" Content="취소" Grid.Column="2"></Button>
                 </Grid>
-                
                 <StackPanel DockPanel.Dock="Top">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -70,13 +69,26 @@
                 </StackPanel>
             </DockPanel>
         </Border>
-        <StackPanel Grid.Row="1" Grid.Column="1">
+        <StackPanel Grid.Row="1" Grid.Column="1" Name="panelSubscriber">
             <ListView Name="listSubscribers">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="닉네임" Width="150" DisplayMemberBinding="{Binding Nickname}"></GridViewColumn>
                         <GridViewColumn Header="전투력" Width="200" DisplayMemberBinding="{Binding CombatPower}" ></GridViewColumn>
                         <GridViewColumn Header="직업" Width="100" DisplayMemberBinding="{Binding JobType}"></GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1" Name="panelBattleBatch" Visibility="Hidden">
+            <ListView Name="listBattleBatch">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="포지션" Width="50" DisplayMemberBinding="{Binding PositionDesc}"></GridViewColumn>
+                        <GridViewColumn Header="탱커" Width="110" DisplayMemberBinding="{Binding Path = Tanker.Nickname }"></GridViewColumn>
+                        <GridViewColumn Header="딜러1" Width="110" DisplayMemberBinding="{Binding Path = Dealer1.Nickname}"></GridViewColumn>
+                        <GridViewColumn Header="딜러2" Width="110" DisplayMemberBinding="{Binding Path =  Dealer2.Nickname}"></GridViewColumn>
+                        <GridViewColumn Header="힐러" Width="110" DisplayMemberBinding="{Binding Path = Healer.Nickname}"></GridViewColumn>
                     </GridView>
                 </ListView.View>
             </ListView>

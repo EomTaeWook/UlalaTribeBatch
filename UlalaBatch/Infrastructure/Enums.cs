@@ -27,4 +27,13 @@ namespace UlalaBatch.Infrastructure
         Max
     }
 
+    public enum Position
+    {
+        Elite,
+        Attack,
+        Defence,
+        Max,
+    }
+
+
 }

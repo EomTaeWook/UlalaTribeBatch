@@ -17,11 +17,12 @@ namespace UlalaBatch
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        private ObservableCollection<CharacterInfoModel> characterList = new ObservableCollection<CharacterInfoModel>();
-        private HashSet<string> nicknames = new HashSet<string>();
-        private CharacterInfoModel selectCharacterInfo = null;
-        private CharacterInfoModel dummy = new CharacterInfoModel();
+        private ObservableCollection<CharacterInfoModel> _characterList = new ObservableCollection<CharacterInfoModel>();
+        private HashSet<string> _includeNicknames = new HashSet<string>();
+        private CharacterInfoModel _selectCharacterInfo = null;
+        private CharacterInfoModel _dummy = new CharacterInfoModel();
         private TaskQueue _taskQueue = new TaskQueue();
+        private BattleBatch _battleBatch = new BattleBatch();
         public MainWindow()
         {
             InitializeComponent();
@@ -35,35 +36,65 @@ namespace UlalaBatch
             this.listSubscribers.SelectionChanged += ListSubscribers_SelectionChanged;
             this.btnCancel.Click += BtnCancel_Click;
             this.btnEdit.Click += BtnEdit_Click;
+            this.btnDelete.Click += BtnDelete_Click;
             this.btnCategoryBattleBatch.Click += BtnCategoryBattleBatch_Click;
+            this.btnCategorySubscribers.Click += BtnCategorySubscribers_Click;
+        }
+
+        private void BtnCategorySubscribers_Click(object sender, RoutedEventArgs e)
+        {
+            panelBattleBatch.Visibility = Visibility.Hidden;
+            panelSubscriber.Visibility = Visibility.Visible;
+        }
+
+        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectCharacterInfo != null)
+            {
+                _includeNicknames.Remove(_selectCharacterInfo.Nickname);
+                this._characterList.Remove(this._selectCharacterInfo);
+                _taskQueue.Enqueue(FileSave);
+                Clear();
+            }
         }
 
         private void BtnCategoryBattleBatch_Click(object sender, RoutedEventArgs e)
         {
-            
+            _battleBatch.Init(this._characterList);
+            _taskQueue.Enqueue(()=> 
+            {
+                var result = _battleBatch.Batch();
+                listBattleBatch.ItemsSource = result;
+
+                return Task.CompletedTask;
+            });
+            panelBattleBatch.Visibility = Visibility.Visible;
+            panelSubscriber.Visibility = Visibility.Hidden;
         }
 
         private void BtnEdit_Click(object sender, RoutedEventArgs e)
         {
-            if(selectCharacterInfo != null)
+            if(_selectCharacterInfo != null)
             {
                 if (Validate() == true)
                 {
-                    if (selectCharacterInfo.Nickname.Equals(txtNickname.Text) == false)
+                    var nickname = txtNickname.Text.Trim();
+                    if (_selectCharacterInfo.Nickname.Equals(nickname) == false)
                     {
-                        if(nicknames.Contains(txtNickname.Text) == true)
+                        if(_includeNicknames.Contains(nickname) == true)
                         {
                             MessageBox.Show("동일한 닉네임이 존재합니다.");
                             return;
                         }
-                        nicknames.Remove(selectCharacterInfo.Nickname);
-                        nicknames.Add(txtNickname.Text);
+                        _includeNicknames.Remove(_selectCharacterInfo.Nickname);
+                        _includeNicknames.Add(nickname);
                     }
-                    selectCharacterInfo.Nickname = txtNickname.Text;
-                    selectCharacterInfo.CombatPower = (int)numCombatPower.Value.Value;
-                    selectCharacterInfo.JobType = (JobType)Enum.Parse(typeof(JobType), comboJob.SelectedItem.ToString());
-                    selectCharacterInfo.JobGroupType = GetJobGroupType(selectCharacterInfo.JobType);
+                    _selectCharacterInfo.Nickname = nickname;
+                    _selectCharacterInfo.CombatPower = (int)numCombatPower.Value.Value;
+                    _selectCharacterInfo.JobType = (JobType)Enum.Parse(typeof(JobType), comboJob.SelectedItem.ToString());
+                    _selectCharacterInfo.JobGroupType = GetJobGroupType(_selectCharacterInfo.JobType);
                     Clear();
+                    _taskQueue.Enqueue(FileSave);
                 }
                     
             }
@@ -80,13 +111,14 @@ namespace UlalaBatch
             {
                 this.btnSave.Visibility = Visibility.Hidden;
                 this.btnEdit.Visibility = Visibility.Visible;
+                this.btnDelete.Visibility = Visibility.Visible;
                 this.btnCancel.Visibility = Visibility.Visible;
 
                 this.txtNickname.Text = selectItem.Nickname;
                 this.numCombatPower.Value = selectItem.CombatPower;
                 this.comboJob.SelectedValue = selectItem.JobType;
 
-                this.selectCharacterInfo = selectItem;
+                this._selectCharacterInfo = selectItem;
             }
         }
 
@@ -101,7 +133,7 @@ namespace UlalaBatch
             this.comboJob.ItemsSource = jobItems;
 
             FileLoad();
-            this.listSubscribers.ItemsSource = characterList;
+            this.listSubscribers.ItemsSource = _characterList;
             Clear();
         }
         private void BtnGithub_Click(object sender, RoutedEventArgs e)
@@ -115,7 +147,7 @@ namespace UlalaBatch
             {
                 var nickname = txtNickname.Text.Trim();
 
-                if(nicknames.Contains(nickname) == true)
+                if(_includeNicknames.Contains(nickname) == true)
                 {
                     MessageBox.Show("동일한 닉네임이 존재합니다.");
                     return;
@@ -135,12 +167,12 @@ namespace UlalaBatch
                     JobGroupType = GetJobGroupType(jobType)
                 };
 
-                characterList.Add(item);
-                nicknames.Add(item.Nickname);
+                _characterList.Add(item);
+                _includeNicknames.Add(item.Nickname);
                 
                 Clear();
 
-                _taskQueue.Enqueue(FIleSave);
+                _taskQueue.Enqueue(FileSave);
             }
         }
         private Task FileLoad()
@@ -148,21 +180,29 @@ namespace UlalaBatch
             if(File.Exists($"./{Consts.SaveFileName}"))
             {
                 var json = File.ReadAllText($"./{Consts.SaveFileName}");
-                characterList = Newtonsoft.Json.JsonConvert.DeserializeObject<ObservableCollection<CharacterInfoModel>>(json);
+                _characterList = Newtonsoft.Json.JsonConvert.DeserializeObject<ObservableCollection<CharacterInfoModel>>(json);
+                this._includeNicknames.Clear();
+
+                this.listSubscribers.ItemsSource = _characterList;
+
+                for(int i=0; i<_characterList.Count; ++i)
+                {
+                    _includeNicknames.Add(_characterList[i].Nickname);
+                }
             }
             return Task.CompletedTask;
         }
-        private Task FIleSave()
+        private Task FileSave()
         {
             if(File.Exists($"./{Consts.SaveFileName}"))
             {
                 File.Delete($"./{Consts.SaveFileName}");
             }
-            var save = this.characterList.OrderBy(r => r.Nickname).ToList();
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(save);
+            var sortList = this._characterList.OrderBy(r => r.Nickname).ToList();
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(sortList);
             File.WriteAllText($"./{Consts.SaveFileName}", json);
 
-            return Task.CompletedTask;
+            return FileLoad();
         }
         private bool Validate()
         {
@@ -188,12 +228,13 @@ namespace UlalaBatch
             txtNickname.Text = "";
             numCombatPower.Value = null;
             comboJob.SelectedIndex = 0;
-            selectCharacterInfo = dummy;
+            _selectCharacterInfo = _dummy;
             listSubscribers.SelectedIndex = -1;
 
             this.btnSave.Visibility = Visibility.Visible;
             this.btnEdit.Visibility = Visibility.Hidden;
             this.btnCancel.Visibility = Visibility.Hidden;
+            this.btnDelete.Visibility = Visibility.Hidden;
         }
         private JobGroupType GetJobGroupType(JobType jobType)
         {

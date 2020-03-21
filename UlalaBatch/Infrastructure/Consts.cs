@@ -10,5 +10,6 @@ namespace UlalaBatch.Infrastructure
     {
         public static readonly string HelpUrl = @"https://github.com/EomTaeWook/UlalaBatch";
         public static readonly string SaveFileName = "save.json";
+        public static int MaxPositionIndex = 8;
     }
 }
