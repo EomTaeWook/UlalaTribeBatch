@@ -11,5 +11,7 @@ namespace UlalaBatch.Infrastructure
         public static readonly string HelpUrl = @"https://github.com/EomTaeWook/UlalaBatch";
         public static readonly string SaveFileName = "save.json";
         public static int MaxPositionIndex = 8;
+        public static string AveragePowerString = @"평균 투력 : {0}";
+        public static string TribeSubscribersString = @"부족 인원 : {0}";
     }
 }

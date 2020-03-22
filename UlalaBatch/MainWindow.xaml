@@ -29,9 +29,15 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Button Width="150" Content="목록" Grid.Column="0" Name="btnCategorySubscribers"></Button>
             <Button Width="150" Content="배치" Grid.Column="1" Name="btnCategoryBattleBatch"></Button>
+            <Label Content="부족 인원 : " Grid.Column="2" Name="labelTribeSubscribers"></Label>
+            <Label Content="평균 투력 : " Grid.Column="3" Name="labelAveragePower"></Label>
+            
         </Grid>
         <Border BorderThickness="1" BorderBrush="Black" Grid.Column="0" Grid.Row="1">
             <DockPanel >
