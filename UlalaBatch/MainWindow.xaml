@@ -75,16 +75,26 @@
                 </StackPanel>
             </DockPanel>
         </Border>
-        <ListView Grid.Row="1" Grid.Column="1" Name="listSubscribers" ScrollViewer.VerticalScrollBarVisibility="Visible" VerticalContentAlignment="Top" ScrollViewer.CanContentScroll="False">
+        <ListView Grid.Row="1" Grid.Column="1" Name="listSubscribers" ScrollViewer.VerticalScrollBarVisibility="Visible" VerticalContentAlignment="Top" ScrollViewer.CanContentScroll="False"
+                  GridViewColumnHeader.Click="GridViewColumnHeader_Click">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="닉네임" Width="150" DisplayMemberBinding="{Binding Nickname}"></GridViewColumn>
-                    <GridViewColumn Header="전투력" Width="200" DisplayMemberBinding="{Binding CombatPower}" ></GridViewColumn>
-                    <GridViewColumn Header="직업" Width="100" DisplayMemberBinding="{Binding JobType}"></GridViewColumn>
+                    <GridViewColumn Header="Nickname" Width="150" DisplayMemberBinding="{Binding Nickname}"></GridViewColumn>
+                    <GridViewColumn Header="CombatPower" Width="200" DisplayMemberBinding="{Binding CombatPower}" ></GridViewColumn>
+                    <GridViewColumn Header="JobType" Width="100" DisplayMemberBinding="{Binding JobType}"></GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>
-        <ListView Grid.Row="1" Grid.Column="1" Name="listBattleBatch" Visibility="Hidden">
+        <ListView Grid.Row="1" Grid.Column="1" Name="listBattleBatch" Visibility="Hidden" SelectionMode="Extended">
+            <ListView.ContextMenu>
+            <ContextMenu Name="InvoiceDetailsList" StaysOpen="true" Background="WhiteSmoke">
+                <ContextMenu.BitmapEffect>
+                    <BitmapEffectGroup/>
+                </ContextMenu.BitmapEffect>
+                    <MenuItem Header="복사" Name="btnCopy" Click="BtnCopyMenu_Click" />
+                    <MenuItem Header="Excel" Name="btnExcel" Click="BtnExcelMenu_Click" />
+                </ContextMenu>
+            </ListView.ContextMenu>
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="포지션" Width="80" DisplayMemberBinding="{Binding PositionDesc}"></GridViewColumn>

@@ -2,11 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using UlalaBatch.Infrastructure;
 using UlalaBatch.Models;
 
@@ -23,6 +27,7 @@ namespace UlalaBatch
         private CharacterInfoModel _dummy = new CharacterInfoModel();
         private TaskQueue _taskQueue = new TaskQueue();
         private BattleBatch _battleBatch = new BattleBatch();
+        private Dictionary<string, ListSortDirection> latestOrderd = new Dictionary<string, ListSortDirection>();
         public MainWindow()
         {
             InitializeComponent();
@@ -41,12 +46,66 @@ namespace UlalaBatch
             this.btnCategorySubscribers.Click += BtnCategorySubscribers_Click;
         }
 
+        private void BtnCopyMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var sb = new StringBuilder();
+            foreach(var selectItem in this.listBattleBatch.SelectedItems)
+            {
+                var item = selectItem as BatchResultModel;
+                var text = $@"[위치 : {item.PositionDesc}] [탱커 : {item.Tanker?.Nickname}] [딜러1 : {item.Dealer1?.Nickname}] [딜러2 : {item.Dealer2?.Nickname}] [힐러 : {item.Healer?.Nickname}]";
+                sb.AppendLine(text);
+            }
+            Clipboard.SetText(sb.ToString());
+        }
+        private void BtnExcelMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var excel = new Microsoft.Office.Interop.Excel.Application();
+            try
+            {
+                var workBook = excel.Workbooks.Add(Type.Missing);
+                var workSheet = (Microsoft.Office.Interop.Excel.Worksheet)workBook.ActiveSheet;
+                workSheet.Name = "batch";
+                var columns = new string[] { "위치", "탱커", "딜러1", "딜러2", "힐러" };
+                for(int i=0; i< columns.Length; ++i)
+                {
+                    workSheet.Cells[1, i+1] = columns[i];
+                }
+                var row = 2;
+                foreach (var selectItem in this.listBattleBatch.SelectedItems)
+                {
+                    var item = selectItem as BatchResultModel;
+
+                    workSheet.Cells[row, 1] = item.PositionDesc;
+                    workSheet.Cells[row, 2] = item.Tanker? .Nickname;
+                    workSheet.Cells[row, 3] = item.Dealer1? .Nickname;
+                    workSheet.Cells[row, 4] = item.Dealer2? .Nickname;
+                    workSheet.Cells[row, 5] = item.Healer? .Nickname;
+                    row++;
+                }
+                Microsoft.Office.Interop.Excel.Range range = workSheet.Range[workSheet.Cells[1, 1], workSheet.Cells[row, columns.Length]];
+                range.EntireColumn.AutoFit();
+                workBook.SaveAs($"{AppDomain.CurrentDomain.BaseDirectory + "UlalaTribeBatch"}",
+                    Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal,
+                    Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                    Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlNoChange,
+                    Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                workBook.Close();
+
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                excel.Quit();
+            }
+        }
         private void BtnCategorySubscribers_Click(object sender, RoutedEventArgs e)
         {
             listBattleBatch.Visibility = Visibility.Hidden;
             listSubscribers.Visibility = Visibility.Visible;
         }
-
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
             if (_selectCharacterInfo != null)
@@ -99,7 +158,30 @@ namespace UlalaBatch
                     
             }
         }
+        private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
+        {
+            var headerClicked = e.OriginalSource as GridViewColumnHeader;
 
+            if(this.latestOrderd[headerClicked.Column.Header.ToString()] == ListSortDirection.Ascending)
+            {
+                this.latestOrderd[headerClicked.Column.Header.ToString()] = ListSortDirection.Descending;
+            }
+            else
+            {
+                this.latestOrderd[headerClicked.Column.Header.ToString()] = ListSortDirection.Ascending;
+            }
+            Sort(headerClicked.Column.Header as string, this.latestOrderd[headerClicked.Column.Header.ToString()], this.listSubscribers.ItemsSource);
+        }
+        private void Sort(string propertyName, ListSortDirection direction, object itemsSource)
+        {
+            ICollectionView dataView = CollectionViewSource.GetDefaultView(itemsSource);
+
+            dataView.SortDescriptions.Clear();
+
+            var sortDescription = new SortDescription(propertyName, direction);
+            dataView.SortDescriptions.Add(sortDescription);
+            dataView.Refresh();
+        }
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
             Clear();
@@ -134,6 +216,12 @@ namespace UlalaBatch
 
             FileLoad();
             this.listSubscribers.ItemsSource = _characterList;
+
+            var gridView = (this.listSubscribers.View as GridView);
+            foreach(var column in gridView.Columns)
+            {
+                this.latestOrderd.Add(column.Header.ToString(), ListSortDirection.Ascending);
+            }
             Clear();
         }
         private void BtnGithub_Click(object sender, RoutedEventArgs e)
@@ -239,6 +327,7 @@ namespace UlalaBatch
             this.btnCancel.Visibility = Visibility.Hidden;
             this.btnDelete.Visibility = Visibility.Hidden;
         }
+
         private JobGroupType GetJobGroupType(JobType jobType)
         {
             if (jobType == JobType.Fighter || jobType == JobType.Warrior)
@@ -258,6 +347,9 @@ namespace UlalaBatch
                 return JobGroupType.Max;
             }
         }
-       
+
+
+
+
     }
 }
