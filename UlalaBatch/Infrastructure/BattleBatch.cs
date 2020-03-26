@@ -69,6 +69,24 @@ namespace UlalaBatch.Infrastructure
                     }
                     batchModel.Position = position;
                     batchModel.Index = index;
+                    int sumCombatPower = 0;
+                    if (batchModel.Tanker != null)
+                    {
+                        sumCombatPower += batchModel.Tanker.CombatPower;
+                    }
+                    if (batchModel.Dealer1 != null)
+                    {
+                        sumCombatPower += batchModel.Dealer1.CombatPower;
+                    }
+                    if (batchModel.Dealer2 != null)
+                    {
+                        sumCombatPower += batchModel.Dealer2.CombatPower;
+                    }
+                    if (batchModel.Healer != null)
+                    {
+                        sumCombatPower += batchModel.Healer.CombatPower;
+                    }
+                    batchModel.CombatPower = sumCombatPower;
                     index += increase;
 
                     result.Add(batchModel);

@@ -21,7 +21,7 @@ namespace UlalaBatch.Models
         public CharacterInfoModel Healer { get; set; }
         public Position Position { get; set; }
         public int Index { get; set; }
-
+        public int CombatPower { get; set; }
         public bool IsCombination()
         {
             if(Tanker != null && Healer != null && Dealer1 != null && Dealer2 != null)

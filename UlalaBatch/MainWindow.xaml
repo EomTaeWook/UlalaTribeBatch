@@ -102,6 +102,7 @@
                     <GridViewColumn Header="딜러1" Width="110" DisplayMemberBinding="{Binding Path = Dealer1.Nickname}"></GridViewColumn>
                     <GridViewColumn Header="딜러2" Width="110" DisplayMemberBinding="{Binding Path =  Dealer2.Nickname}"></GridViewColumn>
                     <GridViewColumn Header="힐러" Width="110" DisplayMemberBinding="{Binding Path = Healer.Nickname}"></GridViewColumn>
+                    <GridViewColumn Header="합투력" Width="110" DisplayMemberBinding="{Binding Path = CombatPower}"></GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>

@@ -65,7 +65,7 @@ namespace UlalaBatch
                 var workBook = excel.Workbooks.Add(Type.Missing);
                 var workSheet = (Microsoft.Office.Interop.Excel.Worksheet)workBook.ActiveSheet;
                 workSheet.Name = "batch";
-                var columns = new string[] { "위치", "탱커", "딜러1", "딜러2", "힐러" };
+                var columns = new string[] { "위치", "탱커", "딜러1", "딜러2", "힐러", "합투력" };
                 for(int i=0; i< columns.Length; ++i)
                 {
                     workSheet.Cells[1, i+1] = columns[i];
@@ -80,6 +80,7 @@ namespace UlalaBatch
                     workSheet.Cells[row, 3] = item.Dealer1? .Nickname;
                     workSheet.Cells[row, 4] = item.Dealer2? .Nickname;
                     workSheet.Cells[row, 5] = item.Healer? .Nickname;
+                    workSheet.Cells[row, 6] = item.CombatPower;
                     row++;
                 }
                 Microsoft.Office.Interop.Excel.Range range = workSheet.Range[workSheet.Cells[1, 1], workSheet.Cells[row, columns.Length]];
@@ -347,9 +348,5 @@ namespace UlalaBatch
                 return JobGroupType.Max;
             }
         }
-
-
-
-
     }
 }
