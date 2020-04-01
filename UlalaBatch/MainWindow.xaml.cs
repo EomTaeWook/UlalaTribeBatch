@@ -279,8 +279,16 @@ namespace UlalaBatch
                     _includeNicknames.Add(_characterList[i].Nickname);
                     total += Convert.ToInt32(_characterList[i].CombatPower);
                 }
-                this.labelTribeSubscribers.Content = string.Format(Consts.TribeSubscribersString, _characterList.Count);
-                this.labelAveragePower.Content = string.Format(Consts.AveragePowerString, total / _characterList.Count);
+                if(_characterList.Count > 0)
+                {
+                    this.labelTribeSubscribers.Content = string.Format(Consts.TribeSubscribersString, _characterList.Count);
+                    this.labelAveragePower.Content = string.Format(Consts.AveragePowerString, total / _characterList.Count);
+                }
+                else
+                {
+                    this.labelTribeSubscribers.Content = string.Format(Consts.TribeSubscribersString, 0);
+                    this.labelAveragePower.Content = string.Format(Consts.AveragePowerString, 0);
+                }
             }
             return Task.CompletedTask;
         }
