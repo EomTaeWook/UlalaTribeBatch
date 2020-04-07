@@ -15,6 +15,9 @@ namespace UlalaBatch.Models
         private JobGroupType _jobGroupType;
         private JobType _jobType;
         private bool _isSelect;
+        private bool _isOnlyDefence;
+        private bool _isEliteExclusion;
+
         public event PropertyChangedEventHandler PropertyChanged;
         public string Nickname
         { 
@@ -61,7 +64,24 @@ namespace UlalaBatch.Models
                 OnPropertyChanged("IsSelect");
             }
         }
-
+        public bool IsOnlyDefence
+        {
+            get => this._isOnlyDefence;
+            set
+            {
+                this._isOnlyDefence = value;
+                OnPropertyChanged("IsOnlyDefence");
+            }
+        }
+        public bool IsEliteExclusion
+        {
+            get => this._isEliteExclusion;
+            set
+            {
+                this._isEliteExclusion = value;
+                OnPropertyChanged("IsEliteExclusion");
+            }
+        }
 
         private void OnPropertyChanged(string propertyName)
         {

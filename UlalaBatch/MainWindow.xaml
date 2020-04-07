@@ -64,6 +64,7 @@
                             <RowDefinition></RowDefinition>
                             <RowDefinition></RowDefinition>
                             <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
                         </Grid.RowDefinitions>
                         <Label Content="닉네임" Grid.Row="0" Grid.Column="0"></Label>
                         <TextBox Grid.Row="0" Grid.Column="1" Name="txtNickname"></TextBox>
@@ -71,6 +72,15 @@
                         <Controls:NumericUpDown Grid.Row="1" Grid.Column="1" Name="numCombatPower" Minimum="0"></Controls:NumericUpDown>
                         <Label Content="직업" Grid.Row="2" Grid.Column="0"></Label>
                         <ComboBox Name="comboJob" Grid.Row="2" Grid.Column="1"></ComboBox>
+                        <Grid Grid.Row="3" Grid.ColumnSpan="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition >
+                                </ColumnDefinition>
+                                <ColumnDefinition></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" x:Name="checkEliteExcept">정예 제외</CheckBox>
+                            <CheckBox Grid.Column="1" x:Name="checkOnlyDefence">방어 고정</CheckBox>
+                        </Grid>
                     </Grid>
                 </StackPanel>
             </DockPanel>
@@ -82,6 +92,20 @@
                     <GridViewColumn Header="Nickname" Width="150" DisplayMemberBinding="{Binding Nickname}"></GridViewColumn>
                     <GridViewColumn Header="CombatPower" Width="200" DisplayMemberBinding="{Binding CombatPower}" ></GridViewColumn>
                     <GridViewColumn Header="JobType" Width="100" DisplayMemberBinding="{Binding JobType}"></GridViewColumn>
+                    <GridViewColumn Header="정예 제외" Width="80">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate >
+                                <CheckBox IsChecked="{Binding IsEliteExclusion}"  IsEnabled="False"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="방어 고정" Width="80">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsOnlyDefence}"  IsEnabled="False"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>

@@ -31,33 +31,22 @@ namespace UlalaBatch.Infrastructure
             {
                 var index = 0;
                 var increase = 1;
-                var position = Position.Attack;
+                var position = Position.Max;
                 for (; ; )
                 {
                     if (_includeBattleNickname.Count == this._sortCharacterInfoModels.Count)
                     {
                         break;
                     }
-                    var batchModel = new BatchResultModel
+                    if(position == Position.Defence && index == 0)
                     {
-                        Tanker = FindTopTanker(),
-                        Healer = FindTopHealer(),
-                        Dealer1 = FindTopDealer(null)
-                    };
-
-                    if (batchModel.Dealer1 != null)
-                    {
-                        batchModel.Dealer2 = FindTopDealer(batchModel.Dealer1);
+                        break;
                     }
-                    if(batchModel.Dealer2 == null)
-                    {
-                        batchModel.Dealer2 = FindTopDealer(null);
-                    }
-                    if(index == 0)
+                    if (index == 0)
                     {
                         position = Position.Elite;
                     }
-                    else if(index <= Consts.MaxPositionIndex && position == Position.Elite)
+                    else if (index <= Consts.MaxPositionIndex && position == Position.Elite)
                     {
                         position = Position.Attack;
                     }
@@ -67,6 +56,23 @@ namespace UlalaBatch.Infrastructure
                         index--;
                         increase = -1;
                     }
+
+                    var batchModel = new BatchResultModel
+                    {
+                        Tanker = FindTopTanker(position),
+                        Healer = FindTopHealer(position),
+                        Dealer1 = FindTopDealer(null, position)
+                    };
+
+                    if (batchModel.Dealer1 != null)
+                    {
+                        batchModel.Dealer2 = FindTopDealer(batchModel.Dealer1, position);
+                    }
+                    if(batchModel.Dealer2 == null)
+                    {
+                        batchModel.Dealer2 = FindTopDealer(null, position);
+                    }
+                    
                     batchModel.Position = position;
                     batchModel.Index = index;
                     int sumCombatPower = 0;
@@ -97,7 +103,7 @@ namespace UlalaBatch.Infrastructure
             }
             return result;
         }
-        private CharacterInfoModel FindTopTanker()
+        private CharacterInfoModel FindTopTanker(Position position)
         {
             for (int i=0; i< this._sortCharacterInfoModels.Count; ++i)
             {
@@ -107,19 +113,35 @@ namespace UlalaBatch.Infrastructure
                     {
                         continue;
                     }
+                    else if (position == Position.Elite && this._sortCharacterInfoModels[i].IsEliteExclusion)
+                    {
+                        continue;
+                    }
+                    else if ((position == Position.Attack || position == Position.Elite) && this._sortCharacterInfoModels[i].IsOnlyDefence)
+                    {
+                        continue;
+                    }
                     _includeBattleNickname.Add(this._sortCharacterInfoModels[i].Nickname);
                     return this._sortCharacterInfoModels[i];
                 }
             }
             return null;
         }
-        private CharacterInfoModel FindTopDealer(CharacterInfoModel dealer)
+        private CharacterInfoModel FindTopDealer(CharacterInfoModel dealer, Position position)
         {
             for (int i = 0; i < this._sortCharacterInfoModels.Count; ++i)
             {
                 if (this._sortCharacterInfoModels[i].JobGroupType == JobGroupType.Dealer)
                 {
                     if (_includeBattleNickname.Contains(this._sortCharacterInfoModels[i].Nickname))
+                    {
+                        continue;
+                    }
+                    else if (position == Position.Elite && this._sortCharacterInfoModels[i].IsEliteExclusion)
+                    {
+                        continue;
+                    }
+                    else if ((position == Position.Attack || position == Position.Elite) && this._sortCharacterInfoModels[i].IsOnlyDefence)
                     {
                         continue;
                     }
@@ -136,13 +158,21 @@ namespace UlalaBatch.Infrastructure
             }
             return null;
         }
-        private CharacterInfoModel FindTopHealer()
+        private CharacterInfoModel FindTopHealer(Position position)
         {
             for (int i = 0; i < this._sortCharacterInfoModels.Count; ++i)
             {
                 if (this._sortCharacterInfoModels[i].JobGroupType == JobGroupType.Healer)
                 {
                     if (_includeBattleNickname.Contains(this._sortCharacterInfoModels[i].Nickname))
+                    {
+                        continue;
+                    }
+                    else if(position == Position.Elite && this._sortCharacterInfoModels[i].IsEliteExclusion)
+                    {
+                        continue;
+                    }
+                    else if ((position == Position.Attack || position == Position.Elite) && this._sortCharacterInfoModels[i].IsOnlyDefence)
                     {
                         continue;
                     }

@@ -44,6 +44,32 @@ namespace UlalaBatch
             this.btnDelete.Click += BtnDelete_Click;
             this.btnCategoryBattleBatch.Click += BtnCategoryBattleBatch_Click;
             this.btnCategorySubscribers.Click += BtnCategorySubscribers_Click;
+            this.checkOnlyDefence.Click += CheckBox_Click;
+            this.checkEliteExcept.Click += CheckBox_Click;
+        }
+
+        private void CheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            if(sender.Equals(checkEliteExcept))
+            {
+                if(checkEliteExcept.IsChecked.HasValue)
+                {
+                    if(checkEliteExcept.IsChecked.Value)
+                    {
+                        checkOnlyDefence.IsChecked = false;
+                    }
+                }
+            }
+            else if(sender.Equals(checkOnlyDefence))
+            {
+                if(checkOnlyDefence.IsChecked.HasValue)
+                {
+                    if (checkOnlyDefence.IsChecked.Value)
+                    {
+                        checkEliteExcept.IsChecked = false;
+                    }
+                }
+            }
         }
 
         private void BtnCopyMenu_Click(object sender, RoutedEventArgs e)
@@ -153,6 +179,8 @@ namespace UlalaBatch
                     _selectCharacterInfo.CombatPower = (int)numCombatPower.Value.Value;
                     _selectCharacterInfo.JobType = (JobType)Enum.Parse(typeof(JobType), comboJob.SelectedItem.ToString());
                     _selectCharacterInfo.JobGroupType = GetJobGroupType(_selectCharacterInfo.JobType);
+                    _selectCharacterInfo.IsEliteExclusion = checkEliteExcept.IsChecked??false;
+                    _selectCharacterInfo.IsOnlyDefence = checkOnlyDefence.IsChecked ?? false;
                     Clear();
                     _taskQueue.Enqueue(FileSave);
                 }
@@ -161,9 +189,12 @@ namespace UlalaBatch
         }
         private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
         {
-            var headerClicked = e.OriginalSource as GridViewColumnHeader;
+            if (!(e.OriginalSource is GridViewColumnHeader headerClicked))
+            {
+                return;
+            }
 
-            if(this.latestOrderd[headerClicked.Column.Header.ToString()] == ListSortDirection.Ascending)
+            if (this.latestOrderd[headerClicked.Column.Header.ToString()] == ListSortDirection.Ascending)
             {
                 this.latestOrderd[headerClicked.Column.Header.ToString()] = ListSortDirection.Descending;
             }
@@ -200,6 +231,8 @@ namespace UlalaBatch
                 this.txtNickname.Text = selectItem.Nickname;
                 this.numCombatPower.Value = selectItem.CombatPower;
                 this.comboJob.SelectedValue = selectItem.JobType;
+                this.checkOnlyDefence.IsChecked = selectItem.IsOnlyDefence;
+                this.checkEliteExcept.IsChecked = selectItem.IsEliteExclusion;
 
                 this._selectCharacterInfo = selectItem;
             }
@@ -253,7 +286,9 @@ namespace UlalaBatch
                     Nickname = nickname,
                     CombatPower = combatPower,
                     JobType = jobType,
-                    JobGroupType = GetJobGroupType(jobType)
+                    JobGroupType = GetJobGroupType(jobType),
+                    IsEliteExclusion = checkEliteExcept.IsChecked ?? false,
+                    IsOnlyDefence = checkOnlyDefence.IsChecked ?? false,
                 };
 
                 _characterList.Add(item);
@@ -330,6 +365,8 @@ namespace UlalaBatch
             comboJob.SelectedIndex = 0;
             _selectCharacterInfo = _dummy;
             listSubscribers.SelectedIndex = -1;
+            checkEliteExcept.IsChecked = false;
+            checkOnlyDefence.IsChecked = false;
 
             this.btnSave.Visibility = Visibility.Visible;
             this.btnEdit.Visibility = Visibility.Hidden;
