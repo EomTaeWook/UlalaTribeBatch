@@ -27,7 +27,8 @@ namespace UlalaBatch
         private CharacterInfoModel _dummy = new CharacterInfoModel();
         private TaskQueue _taskQueue = new TaskQueue();
         private BattleBatch _battleBatch = new BattleBatch();
-        private Dictionary<string, ListSortDirection> latestOrderd = new Dictionary<string, ListSortDirection>();
+        private readonly Dictionary<string, ListSortDirection> latestOrderd = new Dictionary<string, ListSortDirection>();
+        private string latestOrderdColumn;
         public MainWindow()
         {
             InitializeComponent();
@@ -202,7 +203,8 @@ namespace UlalaBatch
             {
                 this.latestOrderd[headerClicked.Column.Header.ToString()] = ListSortDirection.Ascending;
             }
-            Sort(headerClicked.Column.Header as string, this.latestOrderd[headerClicked.Column.Header.ToString()], this.listSubscribers.ItemsSource);
+            latestOrderdColumn = headerClicked.Column.Header.ToString();
+            Sort(latestOrderdColumn, this.latestOrderd[latestOrderdColumn], this.listSubscribers.ItemsSource);
         }
         private void Sort(string propertyName, ListSortDirection direction, object itemsSource)
         {
@@ -252,7 +254,7 @@ namespace UlalaBatch
             this.listSubscribers.ItemsSource = _characterList;
 
             var gridView = (this.listSubscribers.View as GridView);
-            foreach(var column in gridView.Columns)
+            foreach (var column in gridView.Columns)
             {
                 this.latestOrderd.Add(column.Header.ToString(), ListSortDirection.Ascending);
             }
@@ -323,6 +325,11 @@ namespace UlalaBatch
                 {
                     this.labelTribeSubscribers.Content = string.Format(Consts.TribeSubscribersString, 0);
                     this.labelAveragePower.Content = string.Format(Consts.AveragePowerString, 0);
+                }
+
+                if (string.IsNullOrEmpty(latestOrderdColumn) == false)
+                {
+                    Sort(latestOrderdColumn, this.latestOrderd[latestOrderdColumn], this.listSubscribers.ItemsSource);
                 }
             }
             return Task.CompletedTask;
