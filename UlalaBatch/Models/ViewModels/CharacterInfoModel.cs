@@ -17,6 +17,7 @@ namespace UlalaBatch.Models
         private bool _isSelect;
         private bool _isOnlyDefence;
         private bool _isEliteExclusion;
+        private int _partyGroup = 0;
 
         public event PropertyChangedEventHandler PropertyChanged;
         public string Nickname
@@ -81,6 +82,16 @@ namespace UlalaBatch.Models
                 this._isEliteExclusion = value;
                 OnPropertyChanged("IsEliteExclusion");
             }
+        }
+
+        public int PartyGroup
+        {
+            get => this._partyGroup;
+            set
+            {
+                this._partyGroup = value;
+                OnPropertyChanged("PartyGroup");
+            }   
         }
 
         private void OnPropertyChanged(string propertyName)

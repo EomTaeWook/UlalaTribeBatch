@@ -11,173 +11,283 @@ namespace UlalaBatch.Infrastructure
 {
     public class BattleBatch
     {
-        private List<CharacterInfoModel> _sortCharacterInfoModels;
-        private HashSet<string> _includeBattleNickname = new HashSet<string>();
+        private List<CharacterInfoModel> _sortNonePartyCharacterInfoModels;
+        private IEnumerable<CharacterInfoModel> characterInfoModels;
+        private List<BatchResultModel> _queueBatchResult = new List<BatchResultModel>();
+        private readonly ObservableCollection<BatchResultModel> _result = new ObservableCollection<BatchResultModel>();
+        private readonly HashSet<string> _includeBattleNickname = new HashSet<string>();
+
         private volatile int _isProcess = 0;
         public void Init(IEnumerable<CharacterInfoModel> characterInfoModels)
         {
-            this._sortCharacterInfoModels = characterInfoModels.OrderByDescending(r => r.CombatPower).ToList();
+            this.characterInfoModels = characterInfoModels;
+
+            this._sortNonePartyCharacterInfoModels = characterInfoModels.Where(r=>r.PartyGroup == 0).OrderByDescending(r => r.CombatPower).ToList();
+
             _includeBattleNickname.Clear();
+            _queueBatchResult.Clear();
+            _result.Clear();
         }
         public ObservableCollection<BatchResultModel> Batch()
         {
-            var result = new ObservableCollection<BatchResultModel>();
-            if (this._sortCharacterInfoModels == null)
+            if (this.characterInfoModels == null)
             {
-                return result;
+                return _result;
             }
-
             if (Interlocked.Increment(ref _isProcess) == 1)
             {
-                var index = 0;
-                var increase = 1;
-                var position = Position.Max;
-                for (; ; )
+                MakeNonePartyBatchResultModel();
+                MakePartyBatchResultModel();
+
+                foreach (var item in SortingPositionIndex(Position.Elite, _queueBatchResult))
                 {
-                    if (_includeBattleNickname.Count == this._sortCharacterInfoModels.Count)
-                    {
-                        break;
-                    }
-                    if(position == Position.Defence && index == 0)
-                    {
-                        break;
-                    }
-                    if (index == 0)
-                    {
-                        position = Position.Elite;
-                    }
-                    else if (index <= Consts.MaxPositionIndex && position == Position.Elite)
-                    {
-                        position = Position.Attack;
-                    }
-                    else if (index > Consts.MaxPositionIndex && position == Position.Attack)
-                    {
-                        position = Position.Defence;
-                        index--;
-                        increase = -1;
-                    }
-
-                    var batchModel = new BatchResultModel
-                    {
-                        Tanker = FindTopTanker(position),
-                        Healer = FindTopHealer(position),
-                        Dealer1 = FindTopDealer(null, position)
-                    };
-
-                    if (batchModel.Dealer1 != null)
-                    {
-                        batchModel.Dealer2 = FindTopDealer(batchModel.Dealer1, position);
-                    }
-                    if(batchModel.Dealer2 == null)
-                    {
-                        batchModel.Dealer2 = FindTopDealer(null, position);
-                    }
-                    
-                    batchModel.Position = position;
-                    batchModel.Index = index;
-                    int sumCombatPower = 0;
-                    if (batchModel.Tanker != null)
-                    {
-                        sumCombatPower += batchModel.Tanker.CombatPower;
-                    }
-                    if (batchModel.Dealer1 != null)
-                    {
-                        sumCombatPower += batchModel.Dealer1.CombatPower;
-                    }
-                    if (batchModel.Dealer2 != null)
-                    {
-                        sumCombatPower += batchModel.Dealer2.CombatPower;
-                    }
-                    if (batchModel.Healer != null)
-                    {
-                        sumCombatPower += batchModel.Healer.CombatPower;
-                    }
-                    batchModel.CombatPower = sumCombatPower;
-                    index += increase;
-
-                    result.Add(batchModel);
+                    _result.Add(item);
+                }
+                foreach (var item in SortingPositionIndex(Position.Attack, _queueBatchResult))
+                {
+                    _result.Add(item);
+                }
+                foreach (var item in SortingPositionIndex(Position.Defence, _queueBatchResult))
+                {
+                    _result.Add(item);
                 }
                 Interlocked.Decrement(ref _isProcess);
-
-                return result;
+                return _result;
             }
-            return result;
+            return _result;
         }
-        private CharacterInfoModel FindTopTanker(Position position)
+        private List<BatchResultModel> SortingCombatPower(Position position, IEnumerable<BatchResultModel> unorderList)
         {
-            for (int i=0; i< this._sortCharacterInfoModels.Count; ++i)
+            return new List<BatchResultModel>(unorderList.Where(r => r.Position == position).OrderByDescending(r => r.CombatPower));
+        }
+        private List<BatchResultModel> SortingPositionIndex(Position position, IEnumerable<BatchResultModel> unorderList)
+        {
+            if (position == Position.Elite)
             {
-                if(this._sortCharacterInfoModels[i].JobGroupType == JobGroupType.Tanker)
+                return new List<BatchResultModel>(unorderList.Where(r => r.Position == Position.Elite));
+            }
+            else if (position == Position.Attack)
+            {
+                return new List<BatchResultModel>(unorderList.Where(r => r.Position == position).OrderBy(r => r.Index));
+            }
+            else if (position == Position.Defence)
+            {
+                return new List<BatchResultModel>(unorderList.Where(r => r.Position == Position.Defence).OrderByDescending(r => r.Index));
+            }
+            else
+            {
+                return new List<BatchResultModel>();
+            }
+        }
+        private void MakePartyBatchResultModel()
+        {
+            var partyGroups = characterInfoModels.Where(r=>r.PartyGroup > 0).GroupBy(r => r.PartyGroup);
+            foreach (var party in partyGroups)
+            {
+                var item = new BatchResultModel
                 {
-                    if (_includeBattleNickname.Contains(this._sortCharacterInfoModels[i].Nickname))
+                    Position = Position.Attack
+                };
+                var dealer = 0;
+                var participation = new List<CharacterInfoModel>();
+                foreach (var character in party)
+                {
+                    if (character.IsOnlyDefence)
                     {
-                        continue;
+                        item.Position = Position.Defence;
                     }
-                    else if (position == Position.Elite && this._sortCharacterInfoModels[i].IsEliteExclusion)
+                    if (character.JobGroupType == JobGroupType.Tanker)
                     {
-                        continue;
+                        item.Tanker = character;
+                        participation.Add(character);
                     }
-                    else if ((position == Position.Attack || position == Position.Elite) && this._sortCharacterInfoModels[i].IsOnlyDefence)
+                    else if (character.JobGroupType == JobGroupType.Dealer)
                     {
-                        continue;
+                        if (dealer == 0)
+                        {
+                            item.Dealer1 = character;
+                            dealer++;
+                            participation.Add(character);
+
+                        }
+                        else if(dealer == 1)
+                        {
+                            item.Dealer2 = character;
+                            dealer++;
+                            participation.Add(character);
+                        }
+                        else
+                        {
+                        }
+                        
                     }
-                    _includeBattleNickname.Add(this._sortCharacterInfoModels[i].Nickname);
-                    return this._sortCharacterInfoModels[i];
+                    else if (character.JobGroupType == JobGroupType.Healer)
+                    {
+                        item.Healer = character;
+                        participation.Add(character);
+                    }
+                    _includeBattleNickname.Add(character.Nickname);
+                }
+                
+                if (participation.Count() != party.Count())
+                {
+                    ReSettingBattleResultModel(participation, party.ToList(), item);
+                }
+                SetSumCombatPower(item);
+                _queueBatchResult.Add(item);
+            }
+
+            var attackGroups = SortingCombatPower(Position.Attack, _queueBatchResult);
+
+            var index = 1;
+            foreach(var party in attackGroups)
+            {
+                party.Index = index;
+                if(index > Consts.MaxPositionIndex)
+                {
+                    party.Position = Position.Defence;
+                }
+                index++;
+            }
+            index = Consts.MaxPositionIndex;
+            var defanceGroups = SortingCombatPower(Position.Defence, _queueBatchResult);
+            foreach (var party in defanceGroups)
+            {
+                party.Index = index;
+                if (index <= 0)
+                {
+                    party.Position = Position.Max;
+                    index = 0;
+                }
+                index--;
+            }
+        }
+        private void ReSettingBattleResultModel(IEnumerable<CharacterInfoModel> participation, IEnumerable<CharacterInfoModel> party, BatchResultModel batchResultModel)
+        {
+            foreach(var character in party)
+            {
+                if(participation.Any(r=>r == character))
+                {
+                    continue;
+                }
+                if(batchResultModel.Tanker == null)
+                {
+                    batchResultModel.Tanker = character;
+                }
+                else if(batchResultModel.Dealer1 == null)
+                {
+                    batchResultModel.Dealer1 = character;
+                }
+                else if (batchResultModel.Dealer2 == null)
+                {
+                    batchResultModel.Dealer2 = character;
+                }
+                else if (batchResultModel.Healer == null)
+                {
+                    batchResultModel.Healer = character;
                 }
             }
-            return null;
         }
-        private CharacterInfoModel FindTopDealer(CharacterInfoModel dealer, Position position)
+        private void MakeNonePartyBatchResultModel()
         {
-            for (int i = 0; i < this._sortCharacterInfoModels.Count; ++i)
+            var index = 0;
+            var increase = 1;
+            var position = Position.Max;
+            for (; ;)
             {
-                if (this._sortCharacterInfoModels[i].JobGroupType == JobGroupType.Dealer)
+                if (_includeBattleNickname.Count == _sortNonePartyCharacterInfoModels.Count)
                 {
-                    if (_includeBattleNickname.Contains(this._sortCharacterInfoModels[i].Nickname))
+                    break;
+                }
+                if (position == Position.Defence && index == 0)
+                {
+                    break;
+                }
+                if (index == 0)
+                {
+                    position = Position.Elite;
+                }
+                else if (index <= Consts.MaxPositionIndex && position == Position.Elite)
+                {
+                    position = Position.Attack;
+                }
+                else if (index > Consts.MaxPositionIndex && position == Position.Attack)
+                {
+                    position = Position.Defence;
+                    index--;
+                    increase = -1;
+                }
+                var batchModel = new BatchResultModel
+                {
+                    Tanker = FindFreeTopCombatPower(position, JobGroupType.Tanker),
+                    Healer = FindFreeTopCombatPower(position, JobGroupType.Healer),
+                    Dealer1 = FindFreeTopCombatPower(position, JobGroupType.Dealer)
+                };
+
+                if (batchModel.Dealer1 != null)
+                {
+                    batchModel.Dealer2 = FindFreeTopCombatPower(position, JobGroupType.Dealer, batchModel.Dealer1);
+                }
+                if (batchModel.Dealer2 == null)
+                {
+                    batchModel.Dealer2 = FindFreeTopCombatPower(position, JobGroupType.Dealer);
+                }
+                batchModel.Position = position;
+                batchModel.Index = index;
+
+                SetSumCombatPower(batchModel);
+                index += increase;
+                _queueBatchResult.Add(batchModel);
+            }
+        }
+        private void SetSumCombatPower(BatchResultModel batchResultModel)
+        {
+            int sumCombatPower = 0;
+            if (batchResultModel.Tanker != null)
+            {
+                sumCombatPower += batchResultModel.Tanker.CombatPower;
+            }
+            if (batchResultModel.Dealer1 != null)
+            {
+                sumCombatPower += batchResultModel.Dealer1.CombatPower;
+            }
+            if (batchResultModel.Dealer2 != null)
+            {
+                sumCombatPower += batchResultModel.Dealer2.CombatPower;
+            }
+            if (batchResultModel.Healer != null)
+            {
+                sumCombatPower += batchResultModel.Healer.CombatPower;
+            }
+            batchResultModel.CombatPower = sumCombatPower;
+        }
+        private CharacterInfoModel FindFreeTopCombatPower(Position position, JobGroupType jobGroupType, CharacterInfoModel dealer = null)
+        {
+            for (int i = 0; i < this._sortNonePartyCharacterInfoModels.Count; ++i)
+            {
+                if (this._sortNonePartyCharacterInfoModels[i].JobGroupType == jobGroupType)
+                {
+                    if (_includeBattleNickname.Contains(this._sortNonePartyCharacterInfoModels[i].Nickname))
                     {
                         continue;
                     }
-                    else if (position == Position.Elite && this._sortCharacterInfoModels[i].IsEliteExclusion)
+                    else if(position == Position.Elite && this._sortNonePartyCharacterInfoModels[i].IsEliteExclusion)
                     {
                         continue;
                     }
-                    else if ((position == Position.Attack || position == Position.Elite) && this._sortCharacterInfoModels[i].IsOnlyDefence)
+                    else if ((position == Position.Attack || position == Position.Elite) && this._sortNonePartyCharacterInfoModels[i].IsOnlyDefence)
                     {
                         continue;
                     }
                     if (dealer != null)
                     {
-                        if(dealer.JobType == this._sortCharacterInfoModels[i].JobType)
+                        if (dealer.JobType == this._sortNonePartyCharacterInfoModels[i].JobType)
                         {
                             continue;
                         }
                     }
-                    _includeBattleNickname.Add(this._sortCharacterInfoModels[i].Nickname);
-                    return this._sortCharacterInfoModels[i];
-                }
-            }
-            return null;
-        }
-        private CharacterInfoModel FindTopHealer(Position position)
-        {
-            for (int i = 0; i < this._sortCharacterInfoModels.Count; ++i)
-            {
-                if (this._sortCharacterInfoModels[i].JobGroupType == JobGroupType.Healer)
-                {
-                    if (_includeBattleNickname.Contains(this._sortCharacterInfoModels[i].Nickname))
-                    {
-                        continue;
-                    }
-                    else if(position == Position.Elite && this._sortCharacterInfoModels[i].IsEliteExclusion)
-                    {
-                        continue;
-                    }
-                    else if ((position == Position.Attack || position == Position.Elite) && this._sortCharacterInfoModels[i].IsOnlyDefence)
-                    {
-                        continue;
-                    }
-                    _includeBattleNickname.Add(this._sortCharacterInfoModels[i].Nickname);
-                    return this._sortCharacterInfoModels[i];
+                    _includeBattleNickname.Add(this._sortNonePartyCharacterInfoModels[i].Nickname);
+                    return this._sortNonePartyCharacterInfoModels[i];
                 }
             }
             return null;

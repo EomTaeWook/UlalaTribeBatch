@@ -65,6 +65,7 @@
                             <RowDefinition></RowDefinition>
                             <RowDefinition></RowDefinition>
                             <RowDefinition></RowDefinition>
+                            <RowDefinition></RowDefinition>
                         </Grid.RowDefinitions>
                         <Label Content="닉네임" Grid.Row="0" Grid.Column="0"></Label>
                         <TextBox Grid.Row="0" Grid.Column="1" Name="txtNickname"></TextBox>
@@ -72,15 +73,17 @@
                         <Controls:NumericUpDown Grid.Row="1" Grid.Column="1" Name="numCombatPower" Minimum="0"></Controls:NumericUpDown>
                         <Label Content="직업" Grid.Row="2" Grid.Column="0"></Label>
                         <ComboBox Name="comboJob" Grid.Row="2" Grid.Column="1"></ComboBox>
-                        <Grid Grid.Row="3" Grid.ColumnSpan="2">
+                        <CheckBox Grid.Row="3" Grid.ColumnSpan="2" x:Name="checkPartyGroup">파티 그룹</CheckBox>
+                        <Controls:NumericUpDown Grid.Row="3" Grid.Column="1" Name="numParityGroup" Minimum="1" Visibility="Collapsed"></Controls:NumericUpDown>
+                        <Grid Grid.Row="4" Grid.ColumnSpan="2">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition >
-                                </ColumnDefinition>
+                                <ColumnDefinition ></ColumnDefinition>
                                 <ColumnDefinition></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" x:Name="checkEliteExcept">정예 제외</CheckBox>
                             <CheckBox Grid.Column="1" x:Name="checkOnlyDefence">방어 고정</CheckBox>
                         </Grid>
+                       
                     </Grid>
                 </StackPanel>
             </DockPanel>
@@ -106,6 +109,7 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
+                    <GridViewColumn Header="PartyGroup" Width="80" DisplayMemberBinding="{Binding PartyGroup}"></GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>

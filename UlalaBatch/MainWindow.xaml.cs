@@ -47,6 +47,7 @@ namespace UlalaBatch
             this.btnCategorySubscribers.Click += BtnCategorySubscribers_Click;
             this.checkOnlyDefence.Click += CheckBox_Click;
             this.checkEliteExcept.Click += CheckBox_Click;
+            this.checkPartyGroup.Click += CheckBox_Click;
         }
 
         private void CheckBox_Click(object sender, RoutedEventArgs e)
@@ -69,6 +70,26 @@ namespace UlalaBatch
                     {
                         checkEliteExcept.IsChecked = false;
                     }
+                }
+            }
+            else if(sender.Equals(checkPartyGroup))
+            {
+                if (checkPartyGroup.IsChecked.HasValue)
+                {
+                    if (checkPartyGroup.IsChecked.Value == true)
+                    {
+                        this.numParityGroup.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        this.numParityGroup.Visibility = Visibility.Collapsed;
+                        this.numParityGroup.Value = null;
+                    }
+                }
+                else
+                {
+                    this.numParityGroup.Visibility = Visibility.Collapsed;
+                    this.numParityGroup.Value = null;
                 }
             }
         }
@@ -163,29 +184,14 @@ namespace UlalaBatch
         {
             if(_selectCharacterInfo != null)
             {
-                if (Validate() == true)
+                if (Validate(out string nickname) == true)
                 {
-                    var nickname = txtNickname.Text.Trim();
-                    if (_selectCharacterInfo.Nickname.Equals(nickname) == false)
-                    {
-                        if(_includeNicknames.Contains(nickname) == true)
-                        {
-                            MessageBox.Show("동일한 닉네임이 존재합니다.");
-                            return;
-                        }
-                        _includeNicknames.Remove(_selectCharacterInfo.Nickname);
-                        _includeNicknames.Add(nickname);
-                    }
-                    _selectCharacterInfo.Nickname = nickname;
-                    _selectCharacterInfo.CombatPower = (int)numCombatPower.Value.Value;
-                    _selectCharacterInfo.JobType = (JobType)Enum.Parse(typeof(JobType), comboJob.SelectedItem.ToString());
-                    _selectCharacterInfo.JobGroupType = GetJobGroupType(_selectCharacterInfo.JobType);
-                    _selectCharacterInfo.IsEliteExclusion = checkEliteExcept.IsChecked??false;
-                    _selectCharacterInfo.IsOnlyDefence = checkOnlyDefence.IsChecked ?? false;
+                    this._characterList.Remove(_selectCharacterInfo);
+                    _selectCharacterInfo = CreateCharacterInfoModel(nickname);
+                    this._characterList.Add(_selectCharacterInfo);
                     Clear();
                     _taskQueue.Enqueue(FileSave);
                 }
-                    
             }
         }
         private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
@@ -236,6 +242,19 @@ namespace UlalaBatch
                 this.checkOnlyDefence.IsChecked = selectItem.IsOnlyDefence;
                 this.checkEliteExcept.IsChecked = selectItem.IsEliteExclusion;
 
+                if(selectItem.PartyGroup > 0)
+                {
+                    this.checkPartyGroup.IsChecked = true;
+                    this.numParityGroup.Visibility = Visibility.Visible;
+                    this.numParityGroup.Value = selectItem.PartyGroup;
+                }
+                else
+                {
+                    this.checkPartyGroup.IsChecked = false;
+                    this.numParityGroup.Visibility = Visibility.Collapsed;
+                    this.numParityGroup.Value = null;
+                }
+
                 this._selectCharacterInfo = selectItem;
             }
         }
@@ -267,46 +286,49 @@ namespace UlalaBatch
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
-            if(Validate() == true)
+            if(Validate(out string nickname) == true)
             {
-                var nickname = txtNickname.Text.Trim();
-
-                if(_includeNicknames.Contains(nickname) == true)
-                {
-                    MessageBox.Show("동일한 닉네임이 존재합니다.");
-                    return;
-                }
-                var combatPower = 0;
-                if (numCombatPower.Value.HasValue)
-                {
-                    combatPower = (int)numCombatPower.Value.Value;
-                }
-
-                var jobType = (JobType)Enum.Parse(typeof(JobType), comboJob.SelectedItem.ToString());
-                var item = new CharacterInfoModel()
-                {
-                    Nickname = nickname,
-                    CombatPower = combatPower,
-                    JobType = jobType,
-                    JobGroupType = GetJobGroupType(jobType),
-                    IsEliteExclusion = checkEliteExcept.IsChecked ?? false,
-                    IsOnlyDefence = checkOnlyDefence.IsChecked ?? false,
-                };
-
+                var item = CreateCharacterInfoModel(nickname);
                 _characterList.Add(item);
-                _includeNicknames.Add(item.Nickname);
-                
                 Clear();
-
                 _taskQueue.Enqueue(FileSave);
             }
+        }
+
+        private CharacterInfoModel CreateCharacterInfoModel(string nickname)
+        {
+            var combatPower = 0;
+            if (numCombatPower.Value.HasValue)
+            {
+                combatPower = (int)numCombatPower.Value.Value;
+            }
+
+            var jobType = (JobType)Enum.Parse(typeof(JobType), comboJob.SelectedItem.ToString());
+            return new CharacterInfoModel()
+            {
+                Nickname = nickname,
+                CombatPower = combatPower,
+                JobType = jobType,
+                JobGroupType = GetJobGroupType(jobType),
+                IsEliteExclusion = checkEliteExcept.IsChecked ?? false,
+                IsOnlyDefence = checkOnlyDefence.IsChecked ?? false,
+                PartyGroup = (int)(numParityGroup.Value ?? 0)
+            };
         }
         private Task FileLoad()
         {
             if(File.Exists($"./{Consts.SaveFileName}"))
             {
                 var json = File.ReadAllText($"./{Consts.SaveFileName}");
-                _characterList = Newtonsoft.Json.JsonConvert.DeserializeObject<ObservableCollection<CharacterInfoModel>>(json);
+                if(string.IsNullOrEmpty(json))
+                {
+                    _characterList = new ObservableCollection<CharacterInfoModel>();
+                }
+                else
+                {
+                    _characterList = Newtonsoft.Json.JsonConvert.DeserializeObject<ObservableCollection<CharacterInfoModel>>(json);
+                }
+                
                 this._includeNicknames.Clear();
 
                 this.listSubscribers.ItemsSource = _characterList;
@@ -346,11 +368,35 @@ namespace UlalaBatch
 
             return FileLoad();
         }
-        private bool Validate()
+        private bool Validate(out string nickname)
         {
+            nickname = txtNickname.Text.Trim();
+
+            if (_selectCharacterInfo != _dummy)
+            {
+                if(_selectCharacterInfo.Nickname.Equals(nickname) == false)
+                {
+                    if (_includeNicknames.Contains(nickname) == true)
+                    {
+                        MessageBox.Show("동일한 닉네임이 존재합니다.");
+                        return false;
+                    }
+                    _includeNicknames.Remove(_selectCharacterInfo.Nickname);
+                }
+                else
+                {
+                    _includeNicknames.Remove(nickname);
+                }
+            }
+
             if (string.IsNullOrEmpty(txtNickname.Text))
             {
                 MessageBox.Show("닉네임을 입력하세요.");
+                return false;
+            }
+            else if (_includeNicknames.Contains(nickname) == true)
+            {
+                MessageBox.Show("동일한 닉네임이 존재합니다.");
                 return false;
             }
             else if (numCombatPower.Value.HasValue == false)
@@ -363,6 +409,25 @@ namespace UlalaBatch
                 MessageBox.Show("전투력을 입력하세요.");
                 return false;
             }
+            else if(numParityGroup.Value.HasValue)
+            {
+                var group = this._characterList.Where(r => r.PartyGroup == (int)(numParityGroup.Value??0));
+                var count = 0;
+                foreach(var party in group)
+                {
+                    if (party.Nickname == nickname)
+                        continue;
+
+                    count++;
+                }
+                if(count >= Consts.MaxPartyPersonnel)
+                {
+                    MessageBox.Show("최대 파티 인원 초과!");
+                    return false;
+                }                
+            }
+            _includeNicknames.Add(nickname);
+
             return true;
         }
         private void Clear()
@@ -379,6 +444,10 @@ namespace UlalaBatch
             this.btnEdit.Visibility = Visibility.Hidden;
             this.btnCancel.Visibility = Visibility.Hidden;
             this.btnDelete.Visibility = Visibility.Hidden;
+
+            this.checkPartyGroup.IsChecked = false;
+            this.numParityGroup.Value = null;
+            this.numParityGroup.Visibility = Visibility.Collapsed;
         }
 
         private JobGroupType GetJobGroupType(JobType jobType)
