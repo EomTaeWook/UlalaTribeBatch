@@ -86,17 +86,21 @@ namespace UlalaBatch.Infrastructure
             {
                 var item = new BatchResultModel
                 {
-                    Position = Position.Attack
+                    Position = Position.Elite
                 };
                 var dealer = 0;
                 var participation = new List<CharacterInfoModel>();
                 foreach (var character in party)
                 {
+                    if(character.IsEliteExclusion == true)
+                    {
+                        item.Position = Position.Attack;
+                    }
                     if (character.IsOnlyDefence)
                     {
                         item.Position = Position.Defence;
                     }
-                    if (character.JobGroupType == JobGroupType.Tanker)
+                    if (character.JobGroupType == JobGroupType.Tanker && item.Tanker == null)
                     {
                         item.Tanker = character;
                         participation.Add(character);
@@ -121,7 +125,7 @@ namespace UlalaBatch.Infrastructure
                         }
                         
                     }
-                    else if (character.JobGroupType == JobGroupType.Healer)
+                    else if (character.JobGroupType == JobGroupType.Healer && item.Healer == null)
                     {
                         item.Healer = character;
                         participation.Add(character);
@@ -137,9 +141,15 @@ namespace UlalaBatch.Infrastructure
                 _queueBatchResult.Add(item);
             }
 
-            var attackGroups = SortingCombatPower(Position.Attack, _queueBatchResult);
-
+            var eliteGroups = SortingCombatPower(Position.Elite, _queueBatchResult);
             var index = 1;
+            for (int i = 1; i<eliteGroups.Count; ++i)
+            {
+                eliteGroups[i].Index = index;
+                eliteGroups[i].Position = Position.Attack;
+            }
+
+            var attackGroups = SortingCombatPower(Position.Attack, _queueBatchResult);
             foreach(var party in attackGroups)
             {
                 party.Index = index;
