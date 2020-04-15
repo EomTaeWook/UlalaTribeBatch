@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         mc:Ignorable="d"
-        Title="오늘도우라라 부족 배치" Height="450" Width="800">
+        Title="오늘도우라라 부족 배치" Height="450" Width="1200">
     <Controls:MetroWindow.RightWindowCommands>
         <Controls:WindowCommands>
             <Button Name="btnGithub">
@@ -32,11 +32,13 @@
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Button Width="150" Content="목록" Grid.Column="0" Name="btnCategorySubscribers"></Button>
             <Button Width="150" Content="배치" Grid.Column="1" Name="btnCategoryBattleBatch"></Button>
             <Label Content="부족 인원 : " Grid.Column="2" Name="labelTribeSubscribers"></Label>
             <Label Content="평균 투력 : " Grid.Column="3" Name="labelAveragePower"></Label>
+            <Label Content="전체 투력 : " Grid.Column="4" Name="labelTotalPower"></Label>
             
         </Grid>
         <Border BorderThickness="1" BorderBrush="Black" Grid.Column="0" Grid.Row="1">
@@ -110,6 +112,7 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="PartyGroup" Width="80" DisplayMemberBinding="{Binding PartyGroup}"></GridViewColumn>
+                    <GridViewColumn Header="ChangePower" Width="150" DisplayMemberBinding="{Binding ChangePower}"></GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>

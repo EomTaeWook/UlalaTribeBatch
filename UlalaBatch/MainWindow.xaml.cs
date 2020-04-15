@@ -187,7 +187,9 @@ namespace UlalaBatch
                 if (Validate(out string nickname) == true)
                 {
                     this._characterList.Remove(_selectCharacterInfo);
+                    var beforeCombat = _selectCharacterInfo.CombatPower;
                     _selectCharacterInfo = CreateCharacterInfoModel(nickname);
+                    _selectCharacterInfo.BeforeCombatPower = beforeCombat;
                     this._characterList.Add(_selectCharacterInfo);
                     Clear();
                     _taskQueue.Enqueue(FileSave);
@@ -312,7 +314,8 @@ namespace UlalaBatch
                 JobGroupType = GetJobGroupType(jobType),
                 IsEliteExclusion = checkEliteExcept.IsChecked ?? false,
                 IsOnlyDefence = checkOnlyDefence.IsChecked ?? false,
-                PartyGroup = (int)(numParityGroup.Value ?? 0)
+                PartyGroup = (int)(numParityGroup.Value ?? 0),
+                BeforeCombatPower = combatPower
             };
         }
         private Task FileLoad()
@@ -342,11 +345,13 @@ namespace UlalaBatch
                 {
                     this.labelTribeSubscribers.Content = string.Format(Consts.TribeSubscribersString, _characterList.Count);
                     this.labelAveragePower.Content = string.Format(Consts.AveragePowerString, total / _characterList.Count);
+                    this.labelTotalPower.Content = string.Format(Consts.TotalPowerString, total);
                 }
                 else
                 {
                     this.labelTribeSubscribers.Content = string.Format(Consts.TribeSubscribersString, 0);
                     this.labelAveragePower.Content = string.Format(Consts.AveragePowerString, 0);
+                    this.labelTotalPower.Content = string.Format(Consts.TotalPowerString, 0);
                 }
 
                 if (string.IsNullOrEmpty(latestOrderdColumn) == false)

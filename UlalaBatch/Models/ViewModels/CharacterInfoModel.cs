@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace UlalaBatch.Models
     {
         private string _nickname;
         private int _combatPower;
+        private int _beforeCombatPower;
         private JobGroupType _jobGroupType;
         private JobType _jobType;
         private bool _isSelect;
@@ -92,6 +94,21 @@ namespace UlalaBatch.Models
                 this._partyGroup = value;
                 OnPropertyChanged("PartyGroup");
             }   
+        }
+        public int BeforeCombatPower
+        {
+            get => this._beforeCombatPower;
+            set
+            {
+                this._beforeCombatPower = value;
+                OnPropertyChanged("BeforeCombatPower");
+                OnPropertyChanged("CombatPowerChange");
+            }
+        }
+        [JsonIgnore]
+        public int ChangePower
+        {
+            get => this._combatPower - this._beforeCombatPower;
         }
 
         private void OnPropertyChanged(string propertyName)
