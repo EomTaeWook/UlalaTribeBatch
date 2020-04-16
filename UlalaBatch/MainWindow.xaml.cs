@@ -131,8 +131,17 @@ namespace UlalaBatch
                     workSheet.Cells[row, 6] = item.CombatPower;
                     row++;
                 }
-                Microsoft.Office.Interop.Excel.Range range = workSheet.Range[workSheet.Cells[1, 1], workSheet.Cells[row, columns.Length]];
+
+                Microsoft.Office.Interop.Excel.Range titleRange = workSheet.Range[workSheet.Cells[1, 1], workSheet.Cells[1, columns.Length]];
+                titleRange.Interior.Color = Microsoft.Office.Interop.Excel.XlRgbColor.rgbYellow;
+
+                Microsoft.Office.Interop.Excel.Range range = workSheet.Range[workSheet.Cells[1, 1], workSheet.Cells[row-1, columns.Length]];
+                
                 range.EntireColumn.AutoFit();
+                range.EntireRow.AutoFit();
+                range.Borders.LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
+                range.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+
                 workBook.SaveAs($"{AppDomain.CurrentDomain.BaseDirectory + "UlalaTribeBatch"}",
                     Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal,
                     Type.Missing, Type.Missing, Type.Missing, Type.Missing,
